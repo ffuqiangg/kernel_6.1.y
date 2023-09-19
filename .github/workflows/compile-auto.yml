@@ -1,0 +1,67 @@
+name: Compile auto
+
+on:
+  repository_dispatch:
+    types:
+      - Compile-auto
+  workflow_dispatch:
+
+env:
+  TZ: Asia/Shanghai
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Initialization environment
+        id: init
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          docker rmi $(docker images -q)
+          [[ -n "${AGENT_TOOLSDIRECTORY}" ]] && sudo rm -rf "${AGENT_TOOLSDIRECTORY}"
+          sudo rm -rf /usr/share/dotnet /etc/apt/sources.list.d /usr/local/lib/android 2>/dev/null
+          sudo -E apt-get -y update
+          sudo -E apt-get -y purge azure-cli ghc* zulu* llvm* firefox google* dotnet* powershell openjdk* mongodb* moby* || true
+          sudo -E apt-get -y install $(cat depends)
+          sudo -E systemctl daemon-reload
+          #sudo -E apt-get -y full-upgrade
+          sudo -E apt-get -y autoremove --purge
+          sudo -E apt-get clean
+          sudo timedatectl set-timezone "${TZ}"
+          echo "status=success" >> $GITHUB_OUTPUT
+
+      - name: Compile the kernel
+        uses: ophub/amlogic-s9xxx-armbian@main
+        with:
+          build_target: kernel
+          kernel_version: ${{ github.event.client_payload.kernel_version }}
+          kernel_auto: ${{ github.event.client_payload.kernel_auto }}
+          kernel_package: all
+          kernel_sign: -ffuqiangg
+          kernel_source: unifreq
+          kernel_toolchain: clang
+          kernel_config: kernel/config
+
+      - name: Upload Kernel to Release
+        uses: ncipollo/release-action@main
+        if: env.PACKAGED_STATUS == 'success' && !cancelled()
+        with:
+          tag: kernel_${{ env.PACKAGED_OUTPUTTAGS }}
+          artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
+          allowUpdates: true
+          removeArtifacts: false
+          replacesArtifacts: true
+          token: ${{ secrets.GH_TOKEN }}
+          body: |
+            The kernel can be used to compile Armbian and OpenWrt.
+            The kernel source code comes from: unifreq
+            The kernel compilation toolchain: clang
+
+      - name: Telegram notification
+        run: |
+          MSG="✅ 内核编译完成 *${{ env.PACKAGED_OUTPUTTAGS }}*"
+          curl "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" -d "chat_id=${{ secrets.TELEGRAM_TO }}&text=${MSG}&parse_mode=MarkDown"

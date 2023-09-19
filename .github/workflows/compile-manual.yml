@@ -1,0 +1,27 @@
+name: Compile manual
+
+on:
+  workflow_dispatch:
+    inputs:
+      kernel_version:
+        description: "Input kernel version"
+        required: true
+        default: ""
+      kernel_auto:
+        description: "compile latest kernel"
+        required: true
+        default: true
+        type: boolean
+
+env:
+  TZ: Asia/Shanghai
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Compile kernel from compile-auto
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          event-type: Compile-auto
+          client-payload: '{"kernel_version": "${{ inputs.kernel_version }}", "kernel_auto": "${{ inputs.kernel_auto }}"}'

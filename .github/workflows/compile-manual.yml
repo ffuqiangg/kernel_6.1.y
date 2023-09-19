@@ -23,5 +23,6 @@ jobs:
       - name: Compile kernel from compile-auto
         uses: peter-evans/repository-dispatch@v2
         with:
+          token: ${{ secrets.GH_TOKEN }}
           event-type: Compile-auto
           client-payload: '{"kernel_version": "${{ inputs.kernel_version }}", "kernel_auto": "${{ inputs.kernel_auto }}"}'

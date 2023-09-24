@@ -14,6 +14,9 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+
       - name: Checkout
         uses: actions/checkout@v3
 
@@ -33,6 +36,8 @@ jobs:
           sudo -E apt-get -y autoremove --purge
           sudo -E apt-get clean
           sudo timedatectl set-timezone "${TZ}"
+          echo "Free Space"
+          df -h
           echo "status=success" >> $GITHUB_OUTPUT
 
       - name: Compile the kernel

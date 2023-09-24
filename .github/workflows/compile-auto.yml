@@ -45,7 +45,7 @@ jobs:
           kernel_package: all
           kernel_sign: -ffuqiangg
           kernel_source: unifreq
-          kernel_toolchain: clang
+          kernel_toolchain: gcc
           kernel_config: kernel/config
 
       - name: Upload Kernel to Release

@@ -1,4 +1,4 @@
-name: Checke unifreq K6.1
+name: Checke source
 
 env:
   REPO_URL: https://github.com/unifreq/linux-6.1.y

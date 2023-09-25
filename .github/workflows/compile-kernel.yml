@@ -1,9 +1,9 @@
-name: Compile auto
+name: Compile kernel
 
 on:
   repository_dispatch:
     types:
-      - Compile-auto
+      - Compile-kernel
   workflow_dispatch:
 
 env:

@@ -37,5 +37,5 @@ jobs:
       uses: peter-evans/repository-dispatch@v2
       with:
         token: ${{ secrets.GH_TOKEN }}
-        event-type: Compile-auto
+        event-type: Compile-kernel
         client-payload: '{"kernel_version": "6.1.1", "kernel_auto": "true"}'

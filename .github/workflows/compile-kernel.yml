@@ -52,10 +52,9 @@ jobs:
         run: |
           sudo ./recompile -k ${{ github.event.client_payload.kernel_version }} -a ${{ github.event.client_payload.kernel_auto }} -m -ffuqiangg -t gcc
           cd compile-kernel/output
-          tags="$(ls *.tar.gz | sed 's/.tar.gz//')"
-          path="${GITHUB_WORKSPACE}/amlogic-s9xxx-armbian/compile-kernel/output"
+          tags="$(ls *.tar.gz | sed 's/.tar.gz//'
           echo "OUTPUT_TAGS=${tags}" >> $GITHUB_ENV
-          echo "OUTPUT_PATH=${path}" >> $GITHUB_ENV
+          echo "OUTPUT_PATH=$(pwd)" >> $GITHUB_ENV
 
       - name: Upload Kernel to Release
         uses: ncipollo/release-action@main

@@ -50,9 +50,10 @@ jobs:
 
       - name: Compile the kernel
         run: |
-          git clone --depth 1 --single-branch -b main https://github.com/ophub/amlogic-s9xxx-armbian.git
-          cp -f kernel/config/config-6.1 amlogic-s9xxx-armbian/compile-kernel/tools/config/config-6.1
-          cd amlogic-s9xxx-armbian
+          # git clone --depth 1 --single-branch -b main https://github.com/ophub/amlogic-s9xxx-armbian.git
+          # cp -f kernel/config/config-6.1 amlogic-s9xxx-armbian/compile-kernel/tools/config/config-6.1
+          # cd amlogic-s9xxx-armbian
+          # cp -f kernel/config/config-6.1 compile-kernel/tools/config/config-6.1
           sudo ./recompile -k ${{ github.event.client_payload.kernel_version }} -a ${{ github.event.client_payload.kernel_auto }} -m -ffuqiangg -t gcc
           cd compile-kernel/output
           output_tag="$(ls *.tar.gz | sed 's/.tar.gz//')"

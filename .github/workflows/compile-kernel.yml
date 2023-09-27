@@ -18,14 +18,14 @@ jobs:
       - name: Maximize build space
         uses: easimon/maximize-build-space@master
         with:
-          swap-size-mb: 512
-          temp-reserve-mb: 1024
+          swap-size-mb: 1024
+          temp-reserve-mb: 512
           root-reserve-mb: 1280
-          build-mount-path: '/home/runner/work/_actions'
           remove-dotnet: 'true'
           remove-android: 'true'
           remove-haskell: 'true'
           remove-codeql: 'true'
+          remove-docker-images: 'true'
 
       - name: Checkout
         uses: actions/checkout@v3
@@ -35,37 +35,46 @@ jobs:
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
-          docker rmi $(docker images -q)
           [[ -n "${AGENT_TOOLSDIRECTORY}" ]] && sudo rm -rf "${AGENT_TOOLSDIRECTORY}"
           sudo rm -rf /usr/share/dotnet /etc/apt/sources.list.d /usr/local/lib/android /opt/ghc 2>/dev/null
           sudo -E apt-get -y update
           sudo -E apt-get -y purge azure-cli ghc* zulu* llvm* firefox google* dotnet* powershell openjdk* mongodb* moby* || true
-          sudo -E apt-get -y install $(curl -fsSL https://is.gd/depend_ubuntu2204_armbian)
+          sudo -E apt-get -y install $(cat depends)
           sudo -E systemctl daemon-reload
           # sudo -E apt-get -y full-upgrade
           sudo -E apt-get -y autoremove --purge
           sudo -E apt-get clean
           sudo timedatectl set-timezone "${TZ}"
           echo "status=success" >> $GITHUB_OUTPUT
+          df -h
 
       - name: Compile the kernel
-        uses: ophub/amlogic-s9xxx-armbian@main
-        with:
-          build_target: kernel
-          kernel_version: ${{ github.event.client_payload.kernel_version }}
-          kernel_auto: ${{ github.event.client_payload.kernel_auto }}
-          kernel_package: all
-          kernel_sign: -ffuqiangg
-          kernel_source: unifreq
-          kernel_toolchain: gcc
-          kernel_config: kernel/config
+        run: |
+          git clone --depth 1 --single-branch -b main https://github.com/ophub/amlogic-s9xxx-armbian.git
+          cp -f kernel/config/config-6.1 amlogic-s9xxx-armbian/compile-kernel/tools/config/config-6.1
+          cd amlogic-s9xxx-armbian
+          ./recompile -k ${{ github.event.client_payload.kernel_version }} -a ${{ github.event.client_payload.kernel_auto }} -m -ffuqiangg -t gcc
+          cd compile-kernel/output
+          output_tag="$(ls *.tar.gz | sed 's/.tar.gz//')"
+          output_path="${GITHUB_WORKSPACE}/amlogic-s9xxx-armbian/compile-kernel/output"
+          echo "RELEASES_TAG=${output_tag}" >> $GITHUB_ENV
+          ehco "OUTPUT_PATH=${output_path}" >> $GITHUB_ENV
+        # uses: ophub/amlogic-s9xxx-armbian@main
+        # with:
+        #   build_target: kernel
+        #   kernel_version: ${{ github.event.client_payload.kernel_version }}
+        #   kernel_auto: ${{ github.event.client_payload.kernel_auto }}
+        #   kernel_package: all
+        #   kernel_sign: -ffuqiangg
+        #   kernel_source: unifreq
+        #   kernel_toolchain: gcc
+        #   kernel_config: kernel/config
 
       - name: Upload Kernel to Release
         uses: ncipollo/release-action@main
-        if: env.PACKAGED_STATUS == 'success' && !cancelled()
         with:
-          tag: kernel_${{ env.PACKAGED_OUTPUTTAGS }}
-          artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
+          tag: kernel_${{ env.RELEASES_TAG }}
+          artifacts: ${{ env.OUTPUT_PATH }}/*
           allowUpdates: true
           removeArtifacts: false
           replacesArtifacts: true

@@ -50,31 +50,17 @@ jobs:
 
       - name: Compile the kernel
         run: |
-          # git clone --depth 1 --single-branch -b main https://github.com/ophub/amlogic-s9xxx-armbian.git
-          # cp -f kernel/config/config-6.1 amlogic-s9xxx-armbian/compile-kernel/tools/config/config-6.1
-          # cd amlogic-s9xxx-armbian
-          # cp -f kernel/config/config-6.1 compile-kernel/tools/config/config-6.1
           sudo ./recompile -k ${{ github.event.client_payload.kernel_version }} -a ${{ github.event.client_payload.kernel_auto }} -m -ffuqiangg -t gcc
           cd compile-kernel/output
-          output_tag="$(ls *.tar.gz | sed 's/.tar.gz//')"
-          output_path="${GITHUB_WORKSPACE}/amlogic-s9xxx-armbian/compile-kernel/output"
-          echo "RELEASES_TAG=${output_tag}" >> $GITHUB_ENV
-          ehco "OUTPUT_PATH=${output_path}" >> $GITHUB_ENV
-        # uses: ophub/amlogic-s9xxx-armbian@main
-        # with:
-        #   build_target: kernel
-        #   kernel_version: ${{ github.event.client_payload.kernel_version }}
-        #   kernel_auto: ${{ github.event.client_payload.kernel_auto }}
-        #   kernel_package: all
-        #   kernel_sign: -ffuqiangg
-        #   kernel_source: unifreq
-        #   kernel_toolchain: gcc
-        #   kernel_config: kernel/config
+          tags="$(ls *.tar.gz | sed 's/.tar.gz//')"
+          path="${GITHUB_WORKSPACE}/amlogic-s9xxx-armbian/compile-kernel/output"
+          echo "OUTPUT_TAGS=${tags}" >> $GITHUB_ENV
+          echo "OUTPUT_PATH=${path}" >> $GITHUB_ENV
 
       - name: Upload Kernel to Release
         uses: ncipollo/release-action@main
         with:
-          tag: kernel_${{ env.RELEASES_TAG }}
+          tag: kernel_${{ env.OUTPUT_TAGS }}
           artifacts: ${{ env.OUTPUT_PATH }}/*
           allowUpdates: true
           removeArtifacts: false
@@ -83,5 +69,5 @@ jobs:
 
       - name: Telegram notification
         run: |
-          MSG="✅ 内核编译完成 *${{ env.RELEASES_TAG }}*"
+          MSG="✅ 内核编译完成 *${{ env.OUTPUT_TAGS }}*"
           curl "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" -d "chat_id=${{ secrets.TELEGRAM_TO }}&text=${MSG}&parse_mode=MarkDown"

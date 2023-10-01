@@ -50,7 +50,7 @@ jobs:
 
       - name: Compile the kernel
         run: |
-          sudo ./recompile -k ${{ github.event.client_payload.kernel_version }} -a ${{ github.event.client_payload.kernel_auto }} -m -ffuqiangg -t gcc
+          sudo ./recompile -k ${{ github.event.client_payload.kernel_version }} -a ${{ github.event.client_payload.kernel_auto }} -n -ffuqiangg -t clang
           cd compile-kernel/output
           tags="$(ls *.tar.gz | sed 's/.tar.gz//')"
           echo "OUTPUT_TAGS=${tags}" >> $GITHUB_ENV

@@ -50,6 +50,7 @@ jobs:
 
       - name: Compile the kernel
         run: |
+          cp -f kernel/config/config-6.1 compile-kernel/tools/config/config-6.1
           sudo ./recompile -k ${{ github.event.client_payload.kernel_version }} -a ${{ github.event.client_payload.kernel_auto }} -n -ffuqiangg -t clang
           cd compile-kernel/output
           tags="$(ls *.tar.gz | sed 's/.tar.gz//')"

@@ -86,17 +86,10 @@ toolchain_name="gcc"
 # QEMU BINARY
 qemu_binary_arm64="qemu-aarch64-static"
 
-# Set font color
-STEPS="[\033[95m STEPS \033[0m]"
-INFO="[\033[94m INFO \033[0m]"
-SUCCESS="[\033[92m SUCCESS \033[0m]"
-WARNING="[\033[93m WARNING \033[0m]"
-ERROR="[\033[91m ERROR \033[0m]"
-#
 #==============================================================================================
 
 error_msg() {
-    echo -e "${ERROR} ${1}"
+    echo -e "❌ ${1}"
     exit 1
 }
 
@@ -124,7 +117,7 @@ mount_try() {
 }
 
 init_var() {
-    echo -e "${STEPS} Start Initializing Variables..."
+    echo -e "🍺 Start Initializing Variables..."
 
     # If it is followed by [ : ], it means that the option requires a parameter value
     get_all_ver="$(getopt "k:a:n:m:p:r:t:" "${@}")"
@@ -210,7 +203,7 @@ init_var() {
 
 toolchain_check() {
     cd ${current_path}
-    echo -e "${STEPS} Start checking the toolchain for compiling the kernel..."
+    echo -e "🍺 Start checking the toolchain for compiling the kernel..."
 
     # Install dependencies for jammy
     sudo apt-get -qq update
@@ -222,7 +215,7 @@ toolchain_check() {
 
     # Download armbian
     if [[ ! -f "${armbian_file}" ]]; then
-        echo -e "${INFO} Start downloading Armbian rootfs file [ ${armbian_rootfs_file} ]..."
+        echo -e "💬 Start downloading Armbian rootfs file [ ${armbian_rootfs_file} ]..."
         rm -rf ${armbian_path} && mkdir -p ${armbian_path}
         wget -q "${dev_repo}/${armbian_rootfs_file}" -O "${armbian_path}/${armbian_rootfs_file}"
         [[ "${?}" -eq "0" ]] || error_msg "Armbian file download failed"
@@ -238,7 +231,7 @@ toolchain_check() {
     [[ -d "/etc/apt/sources.list.d" ]] || mkdir -p /etc/apt/sources.list.d
     if [[ "${toolchain_name}" == "clang" ]]; then
         # Install LLVM
-        echo -e "${INFO} Start installing the LLVM toolchain..."
+        echo -e "💬 Start installing the LLVM toolchain..."
         sudo apt-get -qq install -y lsb-release software-properties-common gnupg
         curl -fsSL https://apt.llvm.org/llvm.sh | sudo bash -s all
         [[ "${?}" -eq "0" ]] || error_msg "LLVM installation failed."
@@ -261,7 +254,7 @@ toolchain_check() {
         # Download Arm GNU Toolchain
         [[ -d "${toolchain_path}" ]] || mkdir -p ${toolchain_path}
         if [[ ! -d "${toolchain_path}/${gun_file//.tar.xz/}/bin" ]]; then
-            echo -e "${INFO} Start downloading the ARM GNU toolchain [ ${gun_file} ]..."
+            echo -e "💬 Start downloading the ARM GNU toolchain [ ${gun_file} ]..."
             wget -q "${dev_repo}/${gun_file}" -O "${toolchain_path}/${gun_file}"
             [[ "${?}" -eq "0" ]] || error_msg "GNU toolchain file download failed."
             tar -xJf ${toolchain_path}/${gun_file} -C ${toolchain_path}
@@ -284,7 +277,7 @@ toolchain_check() {
 
 query_version() {
     cd ${current_path}
-    echo -e "${STEPS} Start querying the latest kernel version..."
+    echo -e "🍺 Start querying the latest kernel version..."
 
     # Set empty array
     tmp_arr_kernels=()
@@ -292,7 +285,7 @@ query_version() {
     # Query the latest kernel in a loop
     i=1
     for KERNEL_VAR in ${build_kernel[*]}; do
-        echo -e "${INFO} (${i}) Auto query the latest kernel version of the same series for [ ${KERNEL_VAR} ]"
+        echo -e "💬 (${i}) Auto query the latest kernel version of the same series for [ ${KERNEL_VAR} ]"
         # Identify the kernel mainline
         MAIN_LINE="$(echo ${KERNEL_VAR} | awk -F '.' '{print $1"."$2}')"
 
@@ -306,7 +299,7 @@ query_version() {
         else
             error_msg "Failed to query the kernel version in [ github.com/${github_kernel_repo} ]"
         fi
-        echo -e "${INFO} (${i}) [ ${tmp_arr_kernels[$i]} ] is github.com/${github_kernel_repo} latest kernel. \n"
+        echo -e "💬 (${i}) [ ${tmp_arr_kernels[$i]} ] is github.com/${github_kernel_repo} latest kernel. \n"
 
         let i++
     done
@@ -318,48 +311,48 @@ query_version() {
 
 apply_patch() {
     cd ${current_path}
-    echo -e "${STEPS} Start applying custom kernel patches..."
+    echo -e "🍺 Start applying custom kernel patches..."
 
     # Apply the common kernel patches
     if [[ -d "${kernel_patch_path}/common-kernel-patches" ]]; then
-        echo -e "${INFO} Copy common kernel patches..."
+        echo -e "💬 Copy common kernel patches..."
         cp -vf ${kernel_patch_path}/common-kernel-patches/*.patch -t ${kernel_path}/${local_kernel_path}
 
         cd ${kernel_path}/${local_kernel_path}
         for file in *.patch; do
-            echo -e "${INFO} Apply kernel patch file: [ ${file} ]"
+            echo -e "💬 Apply kernel patch file: [ ${file} ]"
             patch -p1 <"${file}"
         done
         rm -f *.patch
     else
-        echo -e "${INFO} No common kernel patches, skipping."
+        echo -e "💬 No common kernel patches, skipping."
     fi
 
     # Apply the dedicated kernel patches
     if [[ -d "${kernel_patch_path}/${local_kernel_path}" ]]; then
-        echo -e "${INFO} Copy [ ${local_kernel_path} ] version dedicated kernel patches..."
+        echo -e "💬 Copy [ ${local_kernel_path} ] version dedicated kernel patches..."
         cp -vf ${kernel_patch_path}/${local_kernel_path}/*.patch -t ${kernel_path}/${local_kernel_path}
 
         cd ${kernel_path}/${local_kernel_path}
         for file in *.patch; do
-            echo -e "${INFO} Apply kernel patch file: [ ${file} ]"
+            echo -e "💬 Apply kernel patch file: [ ${file} ]"
             patch -p1 <"${file}"
         done
         rm -f *.patch
     else
-        echo -e "${INFO} No [ ${local_kernel_path} ] version dedicated kernel patches, skipping."
+        echo -e "💬 No [ ${local_kernel_path} ] version dedicated kernel patches, skipping."
     fi
 }
 
 get_kernel_source() {
     cd ${current_path}
-    echo -e "${STEPS} Start downloading the kernel source code..."
+    echo -e "🍺 Start downloading the kernel source code..."
 
     [[ -d "${kernel_path}" ]] || mkdir -p ${kernel_path}
 
     # Download the kernel source code from github.com
     if [[ ! -d "${kernel_path}/${local_kernel_path}" ]]; then
-        echo -e "${INFO} Start cloning from [ https://github.com/${server_kernel_repo} -b ${code_branch} ]"
+        echo -e "💬 Start cloning from [ https://github.com/${server_kernel_repo} -b ${code_branch} ]"
         git clone -q --single-branch --depth=1 --branch=${code_branch} https://github.com/${server_kernel_repo} ${kernel_path}/${local_kernel_path}
         [[ "${?}" -eq "0" ]] || error_msg "[ https://github.com/${server_kernel_repo} ] Clone failed."
     else
@@ -376,12 +369,12 @@ get_kernel_source() {
             git checkout ${code_branch} && git reset --hard origin/${code_branch} && git pull
             unset kernel_version
             kernel_version="${local_makefile_version}.${local_makefile_patchlevel}.${kernel_sub}"
-            echo -e "${INFO} Synchronize the upstream source code, compile the kernel version [ ${kernel_version} ]."
+            echo -e "💬 Synchronize the upstream source code, compile the kernel version [ ${kernel_version} ]."
         else
             # Reset to local kernel version number
             unset kernel_version
             kernel_version="${local_makefile_version}.${local_makefile_patchlevel}.${local_makefile_sublevel}"
-            echo -e "${INFO} Use local source code, compile the kernel version [ ${kernel_version} ]."
+            echo -e "💬 Use local source code, compile the kernel version [ ${kernel_version} ]."
         fi
     fi
 
@@ -425,30 +418,30 @@ headers_install() {
 
 compile_env() {
     cd ${current_path}
-    echo -e "${STEPS} Start checking local compilation environments..."
+    echo -e "🍺 Start checking local compilation environments..."
 
     # Get kernel output name
     kernel_outname="${kernel_version}${custom_name}"
-    echo -e "${INFO} Compile kernel output name: [ ${kernel_outname} ]"
+    echo -e "💬 Compile kernel output name: [ ${kernel_outname} ]"
 
     # Create a temp directory
-    echo -e "${INFO} Create a temp directory: [ ${out_kernel} ]"
+    echo -e "💬 Create a temp directory: [ ${out_kernel} ]"
     rm -rf ${out_kernel}/{chroot/,boot/,dtb/,modules/,header/,${kernel_version}/}
     mkdir -p ${out_kernel}/{chroot/{root/boot/,},boot/,dtb/{allwinner/,amlogic/,rockchip/},modules/,header/,${kernel_version}/}
 
     cd ${kernel_path}/${local_kernel_path}
-    echo -e "${STEPS} Set cross compilation parameters..."
+    echo -e "🍺 Set cross compilation parameters..."
 
     # Set cross compilation parameters
     export ARCH="arm64"
     export LOCALVERSION="${custom_name}"
 
     # Show variable
-    echo -e "${INFO} ARCH: [ ${ARCH} ]"
-    echo -e "${INFO} LOCALVERSION: [ ${LOCALVERSION} ]"
-    echo -e "${INFO} CROSS_COMPILE: [ ${CROSS_COMPILE} ]"
-    echo -e "${INFO} CC: [ ${CC} ]"
-    echo -e "${INFO} LD: [ ${LD} ]"
+    echo -e "💬 ARCH: [ ${ARCH} ]"
+    echo -e "💬 LOCALVERSION: [ ${LOCALVERSION} ]"
+    echo -e "💬 CROSS_COMPILE: [ ${CROSS_COMPILE} ]"
+    echo -e "💬 CC: [ ${CC} ]"
+    echo -e "💬 LD: [ ${LD} ]"
 
     # Set generic make string
     MAKE_SET_STRING=" ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE} CC=${CC} LD=${LD} ${MFLAGS} LOCALVERSION=${LOCALVERSION} "
@@ -459,10 +452,10 @@ compile_env() {
     # Check .config file
     if [[ ! -s ".config" ]]; then
         [[ -s "${config_path}/config-${kernel_verpatch}" ]] || error_msg "Missing [ config-${kernel_verpatch} ] template!"
-        echo -e "${INFO} Copy [ ${config_path}/config-${kernel_verpatch} ] to [ .config ]"
+        echo -e "💬 Copy [ ${config_path}/config-${kernel_verpatch} ] to [ .config ]"
         cp -f ${config_path}/config-${kernel_verpatch} .config
     else
-        echo -e "${INFO} Use the .config file in the current directory."
+        echo -e "💬 Use the .config file in the current directory."
     fi
     # Clear kernel signature
     sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"\"|" .config
@@ -490,33 +483,33 @@ compile_dtbs() {
     cd ${kernel_path}/${local_kernel_path}
 
     # Make dtbs
-    echo -e "${STEPS} Start compilation dtbs [ ${local_kernel_path} ]..."
+    echo -e "🍺 Start compilation dtbs [ ${local_kernel_path} ]..."
     make ${MAKE_SET_STRING} dtbs -j${PROCESS}
-    [[ "${?}" -eq "0" ]] && echo -e "${SUCCESS} The dtbs is compiled successfully."
+    [[ "${?}" -eq "0" ]] && echo -e "✔️ The dtbs is compiled successfully."
 }
 
 compile_kernel() {
     cd ${kernel_path}/${local_kernel_path}
 
     # Make kernel
-    echo -e "${STEPS} Start compilation kernel [ ${local_kernel_path} ]..."
+    echo -e "🍺 Start compilation kernel [ ${local_kernel_path} ]..."
     make ${MAKE_SET_STRING} Image modules dtbs -j${PROCESS}
-    [[ "${?}" -eq "0" ]] && echo -e "${SUCCESS} The kernel is compiled successfully."
+    [[ "${?}" -eq "0" ]] && echo -e "✔️ The kernel is compiled successfully."
 
     # Install modules
-    echo -e "${STEPS} Install modules..."
+    echo -e "🍺 Install modules..."
     make ${MAKE_SET_STRING} INSTALL_MOD_PATH=${out_kernel}/modules modules_install
-    [[ "${?}" -eq "0" ]] && echo -e "${SUCCESS} The modules is installed successfully."
+    [[ "${?}" -eq "0" ]] && echo -e "✔️ The modules is installed successfully."
 
     # Install headers
-    echo -e "${STEPS} Install headers..."
+    echo -e "🍺 Install headers..."
     headers_install
-    [[ "${?}" -eq "0" ]] && echo -e "${SUCCESS} The headers is installed successfully."
+    [[ "${?}" -eq "0" ]] && echo -e "✔️ The headers is installed successfully."
 }
 
 generate_uinitrd() {
     cd ${current_path}
-    echo -e "${STEPS} Create chroot..."
+    echo -e "🍺 Create chroot..."
 
     cp -f ${armbian_file} ${chroot_file}
 
@@ -530,7 +523,7 @@ generate_uinitrd() {
     mount_try ${loop_armbian}p1 ${tag_rootfs}/boot
 
     ARMBIAN_PLATFORM="$(cat ${tag_rootfs}/etc/ophub-release 2>/dev/null | grep -E "^PLATFORM=.*" | cut -d"'" -f2)"
-    echo -e "${INFO} Armbian PLATFORM: [ ${ARMBIAN_PLATFORM} ]"
+    echo -e "💬 Armbian PLATFORM: [ ${ARMBIAN_PLATFORM} ]"
 
     # Remove current system files for /boot
     rm -f ${tag_rootfs}/boot/{config-*,initrd.img-*,System.map-*,vmlinuz-*,uInitrd*,*Image} && sync
@@ -543,11 +536,11 @@ generate_uinitrd() {
     else
         cp -f ${tag_rootfs}/boot/vmlinuz-${kernel_outname} ${tag_rootfs}/boot/zImage
     fi
-    #echo -e "${INFO} Kernel copy results in the [ ${tag_rootfs}/boot ] directory: \n$(ls -l ${tag_rootfs}/boot) \n"
+    #echo -e "💬 Kernel copy results in the [ ${tag_rootfs}/boot ] directory: \n$(ls -l ${tag_rootfs}/boot) \n"
 
     rm -rf ${tag_rootfs}/usr/lib/modules/*
     cp -rf ${out_kernel}/modules/lib/modules/${kernel_outname} -t ${tag_rootfs}/usr/lib/modules
-    #echo -e "${INFO} Kernel copy results in the [ ${tag_rootfs}/usr/lib/modules ] directory: \n$(ls -l ${tag_rootfs}/usr/lib/modules) \n"
+    #echo -e "💬 Kernel copy results in the [ ${tag_rootfs}/usr/lib/modules ] directory: \n$(ls -l ${tag_rootfs}/usr/lib/modules) \n"
 
     # COMPRESS: [ gzip | bzip2 | lz4 | lzma | lzop | xz | zstd ]
     compress_initrd_file="${tag_rootfs}/etc/initramfs-tools/initramfs.conf"
@@ -555,21 +548,21 @@ generate_uinitrd() {
     echo "COMPRESS=gzip" >>${compress_initrd_file}
 
     [[ -f "/usr/bin/${qemu_binary_arm64}" ]] && cp -f /usr/bin/${qemu_binary_arm64} ${tag_rootfs}/usr/bin/
-    #echo -e "${INFO} The [ ${qemu_binary_arm64} ] file copy results: \n$(ls -l ${tag_rootfs}/usr/bin/${qemu_binary_arm64}) \n"
+    #echo -e "💬 The [ ${qemu_binary_arm64} ] file copy results: \n$(ls -l ${tag_rootfs}/usr/bin/${qemu_binary_arm64}) \n"
 
     cp -f ${script_path}/ubuntu_chroot_armbian.sh ${tag_rootfs}/root
     chmod +x ${tag_rootfs}/root/ubuntu_chroot_armbian.sh
     sync && sleep 3
-    #echo -e "${INFO} Kernel copy results in the [ ${tag_rootfs}/root ] directory: \n$(ls -l ${tag_rootfs}/root) \n"
+    #echo -e "💬 Kernel copy results in the [ ${tag_rootfs}/root ] directory: \n$(ls -l ${tag_rootfs}/root) \n"
 
     # Enter the armbian system to generate /boot/uInitrd-${kernel_outname} file
-    echo -e "${INFO} Enter the chroot armbian system..."
+    echo -e "💬 Enter the chroot armbian system..."
     chroot ${tag_rootfs} /bin/bash -c "/root/ubuntu_chroot_armbian.sh ${kernel_outname}"
     [[ "${?}" -eq "0" && -f "${tag_rootfs}/boot/uInitrd-${kernel_outname}" ]] || error_msg "Create chroot uInitrd-${kernel_outname} file failed."
 
     cd ${current_path}
     # Copy the generated uInitrd file to the current system
-    echo -e "${INFO} Copy the generated files from [ ${tag_rootfs}/boot ]"
+    echo -e "💬 Copy the generated files from [ ${tag_rootfs}/boot ]"
     cp -f ${tag_rootfs}/boot/*${kernel_outname} ${out_kernel}/boot
 
     # Unmount the armbian system
@@ -581,7 +574,7 @@ generate_uinitrd() {
 
 packit_dtbs() {
     # Pack 3 dtbs files
-    echo -e "${STEPS} Packing the [ ${kernel_outname} ] dtbs packages..."
+    echo -e "🍺 Packing the [ ${kernel_outname} ] dtbs packages..."
 
     cd ${out_kernel}/dtb/allwinner
     cp -f ${kernel_path}/${local_kernel_path}/arch/arm64/boot/dts/allwinner/*.dtb . 2>/dev/null
@@ -592,7 +585,7 @@ packit_dtbs() {
         }
         tar -czf dtb-allwinner-${kernel_outname}.tar.gz *
         mv -f *.tar.gz ${out_kernel}/${kernel_version}
-        echo -e "${SUCCESS} The [ dtb-allwinner-${kernel_outname}.tar.gz ] file is packaged."
+        echo -e "✔️ The [ dtb-allwinner-${kernel_outname}.tar.gz ] file is packaged."
     }
 
     cd ${out_kernel}/dtb/amlogic
@@ -604,7 +597,7 @@ packit_dtbs() {
         }
         tar -czf dtb-amlogic-${kernel_outname}.tar.gz *
         mv -f *.tar.gz ${out_kernel}/${kernel_version}
-        echo -e "${SUCCESS} The [ dtb-amlogic-${kernel_outname}.tar.gz ] file is packaged."
+        echo -e "✔️ The [ dtb-amlogic-${kernel_outname}.tar.gz ] file is packaged."
     }
 
     cd ${out_kernel}/dtb/rockchip
@@ -616,29 +609,29 @@ packit_dtbs() {
         }
         tar -czf dtb-rockchip-${kernel_outname}.tar.gz *
         mv -f *.tar.gz ${out_kernel}/${kernel_version}
-        echo -e "${SUCCESS} The [ dtb-rockchip-${kernel_outname}.tar.gz ] file is packaged."
+        echo -e "✔️ The [ dtb-rockchip-${kernel_outname}.tar.gz ] file is packaged."
     }
 }
 
 packit_kernel() {
     # Pack 3 kernel files
-    echo -e "${STEPS} Packing the [ ${kernel_outname} ] boot, modules and header packages..."
+    echo -e "🍺 Packing the [ ${kernel_outname} ] boot, modules and header packages..."
 
     cd ${out_kernel}/boot
     chmod +x *
     tar -czf boot-${kernel_outname}.tar.gz *
     mv -f *.tar.gz ${out_kernel}/${kernel_version}
-    echo -e "${SUCCESS} The [ boot-${kernel_outname}.tar.gz ] file is packaged."
+    echo -e "✔️ The [ boot-${kernel_outname}.tar.gz ] file is packaged."
 
     cd ${out_kernel}/modules/lib/modules
     tar -czf modules-${kernel_outname}.tar.gz *
     mv -f *.tar.gz ${out_kernel}/${kernel_version}
-    echo -e "${SUCCESS} The [ modules-${kernel_outname}.tar.gz ] file is packaged."
+    echo -e "✔️ The [ modules-${kernel_outname}.tar.gz ] file is packaged."
 
     cd ${out_kernel}/header
     tar -czf header-${kernel_outname}.tar.gz *
     mv -f *.tar.gz ${out_kernel}/${kernel_version}
-    echo -e "${SUCCESS} The [ header-${kernel_outname}.tar.gz ] file is packaged."
+    echo -e "✔️ The [ header-${kernel_outname}.tar.gz ] file is packaged."
 }
 
 compile_selection() {
@@ -656,24 +649,24 @@ compile_selection() {
     # Add sha256sum integrity verification file
     cd ${out_kernel}/${kernel_version}
     sha256sum * >sha256sums
-    echo -e "${SUCCESS} The [ sha256sums ] file has been generated"
+    echo -e "✔️ The [ sha256sums ] file has been generated"
 
     cd ${out_kernel}
     tar -czf ${kernel_version}.tar.gz ${kernel_version}
 
-    echo -e "${INFO} Kernel series files are stored in [ ${out_kernel} ]."
+    echo -e "💬 Kernel series files are stored in [ ${out_kernel} ]."
 }
 
 clean_tmp() {
     cd ${current_path}
-    echo -e "${STEPS} Clear the space and update-grub..."
+    echo -e "🍺 Clear the space and update-grub..."
 
     sync && sleep 3
     rm -rf ${out_kernel}/{chroot/,boot/,dtb/,modules/,header/,${kernel_version}/}
 
     update-grub 2>/dev/null
 
-    echo -e "${SUCCESS} All processes have been completed."
+    echo -e "✔️ All processes have been completed."
 }
 
 loop_recompile() {
@@ -708,8 +701,8 @@ loop_recompile() {
 }
 
 # Show welcome message
-echo -e "${STEPS} Welcome to compile kernel! \n"
-echo -e "${INFO} Server running on Ubuntu: [ Release: ${host_release} / Host: ${arch_info} ] \n"
+echo -e "🍺 Welcome to compile kernel! \n"
+echo -e "💬 Server running on Ubuntu: [ Release: ${host_release} / Host: ${arch_info} ] \n"
 # Check script permission, supports running on the x86_64 and aarch64 platforms (ubuntu/debian)
 [[ "$(id -u)" == "0" ]] || error_msg "Please run this script as root: [ sudo ./${0} ]"
 [[ "x86_64 aarch64" == *"${arch_info}"* ]] || error_msg "This script is only supported on the x86_64 and aarch64 platforms."
@@ -722,22 +715,22 @@ toolchain_check
 [[ "${auto_kernel}" == "true" || "${auto_kernel}" == "yes" ]] && query_version
 
 # Show compile settings
-echo -e "${INFO} Kernel compilation toolchain: [ ${toolchain_name} ]"
-echo -e "${INFO} Kernel from: [ ${code_owner} ]"
-echo -e "${INFO} Kernel patch: [ ${auto_patch} ]"
-echo -e "${INFO} Kernel Package: [ ${package_list} ]"
-echo -e "${INFO} kernel signature: [ ${custom_name} ]"
-echo -e "${INFO} Latest kernel version: [ ${auto_kernel} ]"
-echo -e "${INFO} Kernel List: [ $(echo ${build_kernel[*]} | xargs) ] \n"
+echo -e "💬 Kernel compilation toolchain: [ ${toolchain_name} ]"
+echo -e "💬 Kernel from: [ ${code_owner} ]"
+echo -e "💬 Kernel patch: [ ${auto_patch} ]"
+echo -e "💬 Kernel Package: [ ${package_list} ]"
+echo -e "💬 kernel signature: [ ${custom_name} ]"
+echo -e "💬 Latest kernel version: [ ${auto_kernel} ]"
+echo -e "💬 Kernel List: [ $(echo ${build_kernel[*]} | xargs) ] \n"
 
 # Show server start information
-echo -e "${INFO} Server space usage before starting to compile: \n$(df -hT ${current_path}) \n"
+echo -e "💬 Server space usage before starting to compile: \n$(df -hT ${current_path}) \n"
 
 # Loop to compile the kernel
 loop_recompile
 
 # Show server end information
-echo -e "${STEPS} Server space usage after compilation: \n$(df -hT ${current_path}) \n"
-echo -e "${SUCCESS} All process completed successfully."
+echo -e "🍺 Server space usage after compilation: \n$(df -hT ${current_path}) \n"
+echo -e "✔️ All process completed successfully."
 # All process completed
 wait

@@ -526,7 +526,8 @@ generate_uinitrd() {
     echo -e "💬 Armbian PLATFORM: [ ${ARMBIAN_PLATFORM} ]"
 
     # Remove current system files for /boot
-    rm -f ${tag_rootfs}/boot/{config-*,initrd.img-*,System.map-*,vmlinuz-*,uInitrd*,*Image} && sync
+    rm -f ${tag_rootfs}/boot/{config-*,initrd.img-*,System.map-*,vmlinuz-*,uInitrd*,*Image}
+    sync && sleep 3
     # Copy /boot related files into armbian system
     cp -f ${kernel_path}/${local_kernel_path}/System.map ${tag_rootfs}/boot/System.map-${kernel_outname}
     cp -f ${kernel_path}/${local_kernel_path}/.config ${tag_rootfs}/boot/config-${kernel_outname}

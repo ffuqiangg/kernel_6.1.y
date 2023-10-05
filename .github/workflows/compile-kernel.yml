@@ -18,6 +18,7 @@ jobs:
       - name: Maximize build space
         uses: easimon/maximize-build-space@master
         with:
+          overprovision-lvm: 'true'
           swap-size-mb: 1024
           temp-reserve-mb: 512
           root-reserve-mb: 1280
@@ -39,7 +40,7 @@ jobs:
           sudo rm -rf /usr/share/dotnet /etc/apt/sources.list.d /usr/local/lib/android /opt/ghc 2>/dev/null
           sudo -E apt-get -y update
           sudo -E apt-get -y purge azure-cli ghc* zulu* llvm* firefox google* dotnet* powershell openjdk* mongodb* moby* || true
-          sudo -E apt-get -y install $(cat compile-kernel/tools/script/ubuntu2204-build-armbian-depends)
+          sudo -E apt-get -y install $(curl -fsSL https://is.gd/depend_ubuntu2204_armbian)
           sudo -E systemctl daemon-reload
           # sudo -E apt-get -y full-upgrade
           sudo -E apt-get -y autoremove --purge

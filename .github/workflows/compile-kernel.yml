@@ -26,10 +26,8 @@ jobs:
           remove-haskell: 'true'
           remove-codeql: 'true'
           remove-docker-images: 'true'
-
       - name: Checkout
         uses: actions/checkout@v3
-
       - name: Initialization environment
         id: init
         env:
@@ -47,7 +45,6 @@ jobs:
           sudo timedatectl set-timezone "${TZ}"
           echo "status=success" >> $GITHUB_OUTPUT
           df -h
-
       - name: Compile the kernel
         run: |
           cp -f kernel/config/config-6.1 compile-kernel/tools/config/config-6.1
@@ -56,7 +53,6 @@ jobs:
           tags="$(ls *.tar.gz | sed 's/.tar.gz//')"
           echo "OUTPUT_TAGS=${tags}" >> $GITHUB_ENV
           echo "OUTPUT_PATH=$(pwd)" >> $GITHUB_ENV
-
       - name: Upload Kernel to Release
         uses: ncipollo/release-action@main
         with:
@@ -66,7 +62,6 @@ jobs:
           removeArtifacts: false
           replacesArtifacts: true
           token: ${{ secrets.GH_TOKEN }}
-
       - name: Telegram notification
         run: |
           MSG="✅ 内核编译完成 *${{ env.OUTPUT_TAGS }}*"

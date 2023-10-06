@@ -539,6 +539,10 @@ generate_uinitrd() {
     #echo -e "💬 Kernel copy results in the [ ${tag_rootfs}/boot ] directory: \n$(ls -l ${tag_rootfs}/boot) \n"
 
     rm -rf ${tag_rootfs}/usr/lib/modules/* && sync
+    echo -e "Free space"
+    df -h
+    echo -e "df -ih"
+    df -ih
     cp -rf ${out_kernel}/modules/lib/modules/${kernel_outname} -t ${tag_rootfs}/usr/lib/modules
     #echo -e "💬 Kernel copy results in the [ ${tag_rootfs}/usr/lib/modules ] directory: \n$(ls -l ${tag_rootfs}/usr/lib/modules) \n"
 

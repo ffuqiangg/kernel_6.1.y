@@ -1,4 +1,4 @@
-name: Checke source
+name: Checke Source
 
 env:
   REPO_URL: https://github.com/unifreq/linux-6.1.y
@@ -34,5 +34,5 @@ jobs:
       uses: peter-evans/repository-dispatch@v2
       with:
         token: ${{ secrets.GH_TOKEN }}
-        event-type: Compile-kernel
+        event-type: compile-kernel
         client-payload: '{"kernel_version": "6.1.1", "kernel_auto": "true"}'

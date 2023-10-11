@@ -46,19 +46,18 @@ jobs:
           rm -rf kernel
           git clone https://github.com/unifreq/linux-6.1.y.git kernel
           cd kernel
-          rm -f set_*
           cp $GITHUB_WORKSPACE/scripts/set_clean set_clean -v
           cp $GITHUB_WORKSPACE/scripts/set_dtb set_dtb -v
           cp $GITHUB_WORKSPACE/scripts/set_make set_make -v
           cp $GITHUB_WORKSPACE/scripts/set_menuconfig set_menuconfig -v
-          cp $GITHUB_WORKSPACE/scripts/.config .config -v
+          cp $GITHUB_WORKSPACE/config/.config .config -v
           chmod 755 set_*
       - name: Installing cross compile toolchain
         run: |
           cd /opt
           sudo wget $TOOLCHAIN_URL/$TOOLCHAIN
           sudo tar -xf $TOOLCHAIN
-      - name: Build Kernel  
+      - name: Build Kernel
         run: |
           cd kernel
           ./set_make
@@ -88,12 +87,11 @@ jobs:
           rm -rf ${KERNEL_NUMBER} && rm -f ${ARMBIAN_VER}.img
           rm -f ${ARMBIAN_VER}.img
           echo "KERNEL=$PWD" >> $GITHUB_ENV
-          echo "::set-output name=status::success"
       - name: Upload Kernel to Release
         uses: ncipollo/release-action@main
         with:
           tag: kernel_${KERNEL_NUMBER}
-          artifacts: ${{ env.KERNEL }}/*
+          artifacts: ${KERNEL}/*
           allowUpdates: true
           removeArtifacts: false
           replacesArtifacts: true

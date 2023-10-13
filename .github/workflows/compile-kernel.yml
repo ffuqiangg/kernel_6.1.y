@@ -57,7 +57,7 @@ jobs:
           df -h
           echo "KERNEL_VERSION=${{ github.event.client_payload.kernel_version }}" >> $GITHUB_ENV
           echo "KERNEL_AUTO=${{ github.event.client_payload.kernel_auto }}" >> $GITHUB_ENV
-          if [[ "${{ github.event_name }}" == 'workflow_dispatch']]; then
+          if [[ "${{ github.event_name }}" == 'workflow_dispatch' ]]; then
             echo "KERNEL_VERSION=${{ inputs.kernel_version }}" >> $GITHUB_ENV
             echo "KERNEL_AUTO=${{ inputs.kernel_auto }}" >> $GITHUB_ENV
           fi

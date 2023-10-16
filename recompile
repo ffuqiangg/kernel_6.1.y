@@ -545,9 +545,8 @@ generate_uinitrd() {
     fi
     #echo -e "${INFO} Kernel copy results in the [ ${tag_rootfs}/boot ] directory: \n$(ls -l ${tag_rootfs}/boot) \n"
 
-    rm -rf ${tag_rootfs}/usr/lib/modules/*
-    df -h ${tag_rootfs}/usr/lib/modules
-    ls -alhF ${out_kernel}/modules/lib/modules/${kernel_outname}
+    rm -rf ${tag_rootfs}/usr/lib/modules/* && sync && sleep 3
+    df -hT ${tag_rootfs}/usr/lib/modules
     cp -rf ${out_kernel}/modules/lib/modules/${kernel_outname} -t ${tag_rootfs}/usr/lib/modules
     #echo -e "${INFO} Kernel copy results in the [ ${tag_rootfs}/usr/lib/modules ] directory: \n$(ls -l ${tag_rootfs}/usr/lib/modules) \n"
 

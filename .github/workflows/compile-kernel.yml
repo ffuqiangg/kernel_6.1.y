@@ -63,7 +63,7 @@ jobs:
           fi
       - name: Compile the kernel
         run: |
-          cp -f config/config-6.1 compile-kernel/tools/config/config-6.1
+          # cp -f config/config-6.1 compile-kernel/tools/config/config-6.1
           sudo ./recompile -k ${KERNEL_VERSION} -a ${KERNEL_AUTO} -n -ffuqiangg -t gcc
           cd compile-kernel/output
           tags="$(ls *.tar.gz | sed 's/.tar.gz//')"

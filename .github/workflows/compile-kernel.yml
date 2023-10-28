@@ -53,13 +53,13 @@ jobs:
           sudo -E apt-get -y autoremove --purge
           sudo -E apt-get clean
           sudo timedatectl set-timezone "${TZ}"
-          echo "status=success" >> $GITHUB_OUTPUT
+          echo "status=success" >> ${GITHUB_OUTPUT}
           df -h
-          echo "KERNEL_VERSION=${{ github.event.client_payload.kernel_version }}" >> $GITHUB_ENV
-          echo "KERNEL_AUTO=${{ github.event.client_payload.kernel_auto }}" >> $GITHUB_ENV
+          echo "KERNEL_VERSION=${{ github.event.client_payload.kernel_version }}" >> ${GITHUB_ENV}
+          echo "KERNEL_AUTO=${{ github.event.client_payload.kernel_auto }}" >> ${GITHUB_ENV}
           if [[ "${{ github.event_name }}" == 'workflow_dispatch' ]]; then
-            echo "KERNEL_VERSION=${{ inputs.kernel_version }}" >> $GITHUB_ENV
-            echo "KERNEL_AUTO=${{ inputs.kernel_auto }}" >> $GITHUB_ENV
+            echo "KERNEL_VERSION=${{ inputs.kernel_version }}" >> ${GITHUB_ENV}
+            echo "KERNEL_AUTO=${{ inputs.kernel_auto }}" >> ${GITHUB_ENV}
           fi
       - name: Compile the kernel
         run: |
@@ -67,8 +67,8 @@ jobs:
           sudo ./recompile -k ${KERNEL_VERSION} -a ${KERNEL_AUTO} -n -ffuqiangg -t gcc
           cd compile-kernel/output
           tags="$(ls *.tar.gz | sed 's/.tar.gz//')"
-          echo "OUTPUT_TAGS=${tags}" >> $GITHUB_ENV
-          echo "OUTPUT_PATH=$(pwd)" >> $GITHUB_ENV
+          echo "OUTPUT_TAGS=${tags}" >> ${GITHUB_ENV}
+          echo "OUTPUT_PATH=$(pwd)" >> ${GITHUB_ENV}
       - name: Upload Kernel to Release
         uses: ncipollo/release-action@main
         with:

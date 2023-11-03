@@ -36,8 +36,10 @@ jobs:
           remove-haskell: 'true'
           remove-codeql: 'true'
           remove-docker-images: 'true'
+
       - name: Checkout
         uses: actions/checkout@v3
+
       - name: Initialization environment
         id: init
         env:
@@ -61,23 +63,26 @@ jobs:
             echo "KERNEL_VERSION=${{ inputs.kernel_version }}" >> ${GITHUB_ENV}
             echo "KERNEL_AUTO=${{ inputs.kernel_auto }}" >> ${GITHUB_ENV}
           fi
+
       - name: Compile the kernel
         run: |
           # cp -f config/config-6.1 compile-kernel/tools/config/config-6.1
-          sudo ./recompile -k ${KERNEL_VERSION} -a ${KERNEL_AUTO} -n -ffuqiangg -t gcc
+          sudo ./recompile -k ${{ env.KERNEL_VERSION }} -a ${{ env.KERNEL_AUTO }} -n -ffuqiangg -t gcc
           cd compile-kernel/output
-          tags="$(ls *.tar.gz | sed 's/.tar.gz//')"
+          tags="`ls *.tar.gz | sed 's/.tar.gz//'`"
           echo "OUTPUT_TAGS=${tags}" >> ${GITHUB_ENV}
-          echo "OUTPUT_PATH=$(pwd)" >> ${GITHUB_ENV}
+          echo "OUTPUT_PATH=${PWD}" >> ${GITHUB_ENV}
+
       - name: Upload Kernel to Release
         uses: ncipollo/release-action@main
         with:
-          tag: kernel_${OUTPUT_TAGS}
-          artifacts: ${OUTPUT_PATH}/*
+          tag: kernel_${{ env.OUTPUT_TAGS }}
+          artifacts: ${{ env.OUTPUT_PATH }}/*
           allowUpdates: true
           removeArtifacts: false
           replacesArtifacts: true
           token: ${{ secrets.GH_TOKEN }}
+
       - name: Telegram notification
         run: |
           MSG="✅ 内核编译完成 *${OUTPUT_TAGS}*"

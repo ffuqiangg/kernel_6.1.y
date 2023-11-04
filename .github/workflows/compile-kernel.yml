@@ -69,7 +69,7 @@ jobs:
           # cp -f config/config-6.1 compile-kernel/tools/config/config-6.1
           sudo ./recompile -k ${{ env.KERNEL_VERSION }} -a ${{ env.KERNEL_AUTO }} -n -ffuqiangg -t gcc
           cd compile-kernel/output
-          tags="`ls *.tar.gz | sed 's/.tar.gz//'`"
+          tags="$(ls *.tar.gz | sed 's/.tar.gz//')"
           echo "OUTPUT_TAGS=${tags}" >> ${GITHUB_ENV}
           echo "OUTPUT_PATH=${PWD}" >> ${GITHUB_ENV}
 
